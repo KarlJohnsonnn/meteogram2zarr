@@ -95,5 +95,3 @@ python -m pytest
 meteogram2zarr --help
 ```
 
-Tests use tiny synthetic files and skip Zarr integration if optional packages are
-missing.
