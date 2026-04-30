@@ -1,2 +1,0 @@
-[console_scripts]
-meteogram2zarr = meteogram2zarr.cli:main
