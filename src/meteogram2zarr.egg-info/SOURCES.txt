@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/meteogram2zarr/__init__.py
+src/meteogram2zarr/cli.py
+src/meteogram2zarr/core.py
+src/meteogram2zarr.egg-info/PKG-INFO
+src/meteogram2zarr.egg-info/SOURCES.txt
+src/meteogram2zarr.egg-info/dependency_links.txt
+src/meteogram2zarr.egg-info/entry_points.txt
+src/meteogram2zarr.egg-info/requires.txt
+src/meteogram2zarr.egg-info/top_level.txt
+tests/test_cli.py
+tests/test_core.py
