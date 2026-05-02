@@ -1,8 +1,24 @@
 # Meteogram2Zarr
 
-Standalone converter for COSMO-SPECS meteogram NetCDF files (`M_??_??_*.nc`)
-into one Zarr v2 store. It is extracted from `polarcap_analysis` LV2
-processing but does not import `polarcap_analysis/src`.
+`meteogram2zarr` converts COSMO-SPECS meteogram NetCDF files
+(`M_??_??_*.nc`) into one Zarr v2 store. It is extracted from
+`polarcap_analysis` LV2 processing but does not import `polarcap_analysis/src`.
+
+It exists to make repeated meteogram analysis faster and more shareable: many
+small NetCDF files become one chunked store that works better with xarray, Dask,
+and Slurm-backed workflows.
+
+## Contents
+
+- [Install](#install)
+- [Test run](#test-run)
+- [my_run: dry run with own data](#my_run-dry-run-with-own-data)
+- [Configuration](#configuration)
+  - [Data layout](#data-layout)
+  - [COSMO-SPECS assumptions](#cosmo-specs-assumptions)
+  - [Output Zarr schema](#output-zarr-schema)
+  - [Slurm](#slurm)
+- [Reference](#reference)
 
 ## Install
 
@@ -19,17 +35,20 @@ For normal COSMO-SPECS files install at least one NetCDF backend:
 `get_max_timesteps` and the default CLI scan use `ncdump -h`, so the NetCDF C
 utilities must be on `PATH`. If `ncdump` is unavailable, pass `--max-time`.
 
-## Quickstart
+## Test run
 
 ```bash
-meteogram2zarr \
-  --input-dir /work/.../ensemble_output/cs-eriswil__20260328_205320 \
-  --meta-json /work/.../ensemble_output/cs-eriswil__20260328_205320/cs-eriswil__20260328_205320.json \
-  --output Meteogram_cs-eriswil__20260328_205320.zarr \
-  --overwrite
+python -m pytest
+meteogram2zarr --help
 ```
 
-Subset for a smoke test:
+Tests use tiny synthetic files and skip Zarr integration if optional packages are
+missing.
+
+## my_run: dry run with own data
+
+Subset for a smoke test on your own run directory. Adjust paths, experiment
+IDs, and variables:
 
 ```bash
 meteogram2zarr \
@@ -42,7 +61,19 @@ meteogram2zarr \
   --overwrite
 ```
 
-## Input Assumptions
+If the subset looks right, run the full conversion with your ensemble output:
+
+```bash
+meteogram2zarr \
+  --input-dir /work/.../ensemble_output/cs-eriswil__20260328_205320 \
+  --meta-json /work/.../ensemble_output/cs-eriswil__20260328_205320/cs-eriswil__20260328_205320.json \
+  --output Meteogram_cs-eriswil__20260328_205320.zarr \
+  --overwrite
+```
+
+## Configuration
+
+### Data layout
 
 - Files follow `M_??_??_??????????????.nc`.
 - Experiment suffix is the final 14-character field before `.nc`.
@@ -52,13 +83,16 @@ meteogram2zarr \
 - Optional run JSON has
   `cfg[exp]["INPUT_DIA"]["diactl"]["stationlist_tot"]`, shaped as rows of five
   values where columns 3 and 4 are latitude and longitude.
+
+### COSMO-SPECS assumptions
+
 - COSMO vertical dims `HMLd` and `HHLd` are renamed to `height_level` and
   `height_level2`, then trimmed from the top.
 
 This is not a generic NetCDF combiner. It preserves the COSMO-SPECS meteogram
 schema used by PolarCAP.
 
-## Output Schema
+### Output Zarr schema
 
 The output Zarr store uses:
 
@@ -71,7 +105,7 @@ The output Zarr store uses:
 
 Data are written as Zarr v2 with Blosc zstd compression.
 
-## Slurm
+### Slurm
 
 If `levante-slurm-utils` is installed, the CLI can request a Dask cluster:
 
@@ -88,10 +122,6 @@ meteogram2zarr \
 Small jobs are often faster without Slurm startup overhead. Start with a subset,
 then scale only when the conversion is I/O or memory limited.
 
-## Tests
+## Reference
 
-```bash
-python -m pytest
-meteogram2zarr --help
-```
-
+For resource guidance on Levante, see `share/levante-slurm-utils/README.md`.
